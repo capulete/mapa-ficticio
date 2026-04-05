@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forja de Mundos — Gerador de Mapas RPG</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <h1>⚔ Forja de <span>Mundos</span> ⚔</h1>
+  <p class="subtitle">Gerador de Mapas para RPG com Inteligência Artificial</p>
+</header>
+
+<div class="layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <div class="sidebar">
+
+    <!-- Terrenos -->
+    <div class="panel">
+      <div class="panel-title">🖌 Pincel de Terreno</div>
+      <div class="btn-grid">
+        <button class="terrain-btn active" data-terrain="ocean" onclick="setTerrain(this)">
+          <span class="icon">🌊</span><span>Oceano</span>
+        </button>
+        <button class="terrain-btn" data-terrain="plains" onclick="setTerrain(this)">
+          <span class="icon">🌾</span><span>Planície</span>
+        </button>
+        <button class="terrain-btn" data-terrain="forest" onclick="setTerrain(this)">
+          <span class="icon">🌲</span><span>Floresta</span>
+        </button>
+        <button class="terrain-btn" data-terrain="mountain" onclick="setTerrain(this)">
+          <span class="icon">⛰</span><span>Montanha</span>
+        </button>
+        <button class="terrain-btn" data-terrain="desert" onclick="setTerrain(this)">
+          <span class="icon">🏜</span><span>Deserto</span>
+        </button>
+        <button class="terrain-btn" data-terrain="swamp" onclick="setTerrain(this)">
+          <span class="icon">🌿</span><span>Pântano</span>
+        </button>
+        <button class="terrain-btn" data-terrain="snow" onclick="setTerrain(this)">
+          <span class="icon">❄</span><span>Neve</span>
+        </button>
+        <button class="terrain-btn" data-terrain="eraser" onclick="setTerrain(this)">
+          <span class="icon">🌊</span><span>Apagar</span>
+        </button>
+      </div>
+      <div style="margin-top:12px;">
+        <label class="slider-label">Tamanho do pincel</label>
+        <input type="range" id="brushSize" min="1" max="5" value="2"
+               oninput="window.brushSize=+this.value">
+      </div>
+    </div>
+
+    <!-- Localidades -->
+    <div class="panel">
+      <div class="panel-title">🏰 Localidades</div>
+      <div class="btn-grid" style="margin-bottom:10px;">
+        <button class="terrain-btn" data-terrain="city" onclick="setCityMode(this,'city')">
+          <span class="icon">🏙</span><span>Cidade</span>
+        </button>
+        <button class="terrain-btn" data-terrain="village" onclick="setCityMode(this,'village')">
+          <span class="icon">🏘</span><span>Aldeia</span>
+        </button>
+        <button class="terrain-btn" data-terrain="castle" onclick="setCityMode(this,'castle')">
+          <span class="icon">🏰</span><span>Castelo</span>
+        </button>
+        <button class="terrain-btn" data-terrain="dungeon" onclick="setCityMode(this,'dungeon')">
+          <span class="icon">💀</span><span>Masmorra</span>
+        </button>
+        <button class="terrain-btn" data-terrain="port" onclick="setCityMode(this,'port')">
+          <span class="icon">⚓</span><span>Porto</span>
+        </button>
+        <button class="terrain-btn" data-terrain="temple" onclick="setCityMode(this,'temple')">
+          <span class="icon">⛩</span><span>Templo</span>
+        </button>
+      </div>
+      <div class="city-list" id="cityList">
+        <div class="empty-msg">Nenhuma localidade adicionada ainda...</div>
+      </div>
+    </div>
+
+    <!-- IA -->
+    <div class="panel">
+      <div class="panel-title">✨ Descreva seu Mundo</div>
+
+      <!-- API Key input -->
+      <div class="api-key-wrapper">
+        <input type="password" id="apiKey" placeholder="Cole sua API Key do Claude aqui..."
+               autocomplete="off">
+        <small class="api-hint">
+          🔑 Obtenha sua chave em
+          <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>
+        </small>
+      </div>
+
+      <textarea id="worldDesc"
+        placeholder="Ex: Um reino medieval com florestas sombrias ao norte, um deserto árido ao sul, e um império marítimo controlando os mares..."></textarea>
+      <button class="action-btn gold-btn" onclick="generateWithAI()">✦ Gerar com IA ✦</button>
+    </div>
+
+  </div><!-- /sidebar -->
+
+  <!-- ===== MAP AREA ===== -->
+  <div class="map-wrapper">
+
+    <div class="map-container" id="mapContainer">
+      <canvas id="mapCanvas"></canvas>
+      <div class="map-overlay-hint" id="hint">🖱 Clique e arraste para pintar o terreno</div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-color" style="background:#1a3a5c"></div> Oceano</div>
+      <div class="legend-item"><div class="legend-color" style="background:#7ab648"></div> Planície</div>
+      <div class="legend-item"><div class="legend-color" style="background:#2d5016"></div> Floresta</div>
+      <div class="legend-item"><div class="legend-color" style="background:#4a3728"></div> Montanha</div>
+      <div class="legend-item"><div class="legend-color" style="background:#c8a832"></div> Deserto</div>
+      <div class="legend-item"><div class="legend-color" style="background:#3d6b3d"></div> Pântano</div>
+      <div class="legend-item"><div class="legend-color" style="background:#c8e0f0"></div> Neve</div>
+    </div>
+
+    <div class="map-controls">
+      <button class="action-btn secondary" onclick="clearMap()">🗑 Limpar Mapa</button>
+      <button class="action-btn secondary" onclick="generateTerrain()">🎲 Gerar Terreno</button>
+      <button class="action-btn" onclick="saveMap()">💾 Exportar PNG</button>
+    </div>
+
+    <!-- AI Response -->
+    <div class="ai-panel">
+      <div class="ai-title"><div class="ai-dot"></div> Oráculo do Mundo</div>
+      <div class="ai-response" id="aiResponse">O oráculo aguarda para revelar os segredos do seu mundo... Insira sua API Key, descreva seu reino e pressione "Gerar com IA".</div>
+    </div>
+
+  </div><!-- /map-wrapper -->
+</div><!-- /layout -->
+
+<!-- ===== CITY MODAL ===== -->
+<div class="modal" id="cityModal">
+  <div class="modal-box">
+    <h3>⚑ Nova Localidade</h3>
+    <input type="text" id="cityName" placeholder="Nome da localidade..." maxlength="40">
+    <select id="cityTypeSelect">
+      <option value="city">🏙 Cidade</option>
+      <option value="village">🏘 Aldeia</option>
+      <option value="castle">🏰 Castelo</option>
+      <option value="dungeon">💀 Masmorra</option>
+      <option value="port">⚓ Porto</option>
+      <option value="temple">⛩ Templo</option>
+    </select>
+    <div class="modal-btns">
+      <button class="action-btn" onclick="confirmCity()">Confirmar</button>
+      <button class="action-btn secondary" onclick="cancelCity()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="js/map.js"></script>
+<script src="js/cities.js"></script>
+<script src="js/ai.js"></script>
+<script>
+  // Init
+  generateTerrain();
+</script>
+</body>
+</html>
